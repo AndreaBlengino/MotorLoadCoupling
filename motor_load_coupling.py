@@ -6,15 +6,14 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 
 # motor data
-n_0 = 3000      # rpm  - no load veloctiy
-T_s = 30        # Nmm  - stall torque
 I_r = 4e-4      # kgm2 - inertia of the rotor
 I_0 = 0.043     # A    - no load current
 I_s = 0.87      # A    - stall current
+motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
 
 # load data
 I_l = 1.2       # kgm2 - inertia of the load
-df = pd.read_csv(r'data\load_resistance.csv')
+load_curve = pd.read_csv(r'data\load_resistance.csv')
 
 # gearbox data
 i = 80          #      - total gear ratio
@@ -30,9 +29,8 @@ dt = 0.001       # s   - time discretization
 
 
 # unit conversion
-n_0 = n_0*2*np.pi/60                # from rpm to rad/s
-T_s = T_s/1000                      # from Nmm to Nm
-df['beta'] = df['beta']/180*np.pi   # from deg to rad
+motor_curve['alpha'] = motor_curve['alpha']*2*np.pi/60  # from rpm to rad/s
+load_curve['beta'] = load_curve['beta']/180*np.pi       # from deg to rad
 
 # initialize arrays
 time = [0]
@@ -44,8 +42,8 @@ d_alpha = [d_beta[-1]*i]
 dd_alpha = [dd_beta[-1]*i]
 
 # set up interpolation tables
-load_table = interp1d(df['beta'], df['torque'], fill_value = 'extrapolate')
-motor_torque_table = interp1d([0, n_0], [T_s, 0], fill_value = 'extrapolate')
+motor_torque_table = interp1d(motor_curve['alpha'], motor_curve['torque'], fill_value = 'extrapolate')
+load_table = interp1d(load_curve['beta'], load_curve['torque'], fill_value = 'extrapolate')
 
 
 # integration
