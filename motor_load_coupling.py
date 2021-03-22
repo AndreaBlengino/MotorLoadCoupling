@@ -39,6 +39,12 @@ dd_beta = [0]
 alpha = [beta[-1]*i]
 d_alpha = [d_beta[-1]*i]
 dd_alpha = [dd_beta[-1]*i]
+resistance_torque = [0]
+inertia_torque = [0]
+load_torque = [0]
+resistance_torque_to_motor = [0]
+motor_torque = [0]
+motor_current = [0]
 
 # set up interpolation tables
 motor_torque_table = interp1d(motor_curve['alpha'], motor_curve['torque'], fill_value = 'extrapolate')
@@ -50,34 +56,37 @@ for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
 
     time.append(time[-1] + dt)
 
-    resistance_torque = load_table(beta[-1])
-    inertia_torque = dd_beta[-1]*I_l
-    load_torque = resistance_torque + inertia_torque
+    resistance_torque_i = load_table(beta[-1])
+    resistance_torque.append(resistance_torque_i)
+    inertia_torque_i = dd_beta[-1]*I_l
+    inertia_torque.append(inertia_torque_i)
+    load_torque_i = resistance_torque_i + inertia_torque_i
+    load_torque.append(load_torque_i)
+    resistance_torque_to_motor_i = load_torque_i/i/eta
+    resistance_torque_to_motor.append(resistance_torque_to_motor_i)
 
-    resistance_torque_to_motor = load_torque/i/eta
-    motor_torque = motor_torque_table(d_alpha[-1])
-    motor_current = current_table(motor_torque)
-    dd_alpha_i = (motor_torque - resistance_torque_to_motor)/I_r
+    motor_torque_i = motor_torque_table(d_alpha[-1])
+    motor_torque.append(motor_torque_i)
+    motor_current_i = current_table(motor_torque_i)
+    motor_current.append(motor_current_i)
+
+    dd_alpha_i = (motor_torque_i - resistance_torque_to_motor_i)/I_r
     dd_alpha.append(dd_alpha_i)
-
     d_alpha_i = (dd_alpha[-1] + dd_alpha[-2])*(time[-1] - time[-2])/2 + d_alpha[-1]
     d_alpha.append(d_alpha_i)
-
     alpha_i = (d_alpha[-1] + d_alpha[-2])*(time[-1] - time[-2])/2 + alpha[-1]
     alpha.append(alpha_i)
 
     beta_i = alpha_i/i
     beta.append(beta_i)
-
     d_beta_i = d_alpha_i/i
     d_beta.append(d_beta_i)
-
     dd_beta_i = dd_alpha_i/i
     dd_beta.append(dd_beta_i)
 
 
 # plotting
-fig, ax = plt.subplots(3, 2)
+fig, ax = plt.subplots(3, 3)
 
 ax[0, 0].plot(time, alpha)
 ax[1, 0].plot(time, d_alpha)
@@ -85,5 +94,14 @@ ax[2, 0].plot(time, dd_alpha)
 ax[0, 1].plot(time, beta)
 ax[1, 1].plot(time, d_beta)
 ax[2, 1].plot(time, dd_beta)
+ax[0, 2].plot(time, resistance_torque, label = 'resistance torque')
+ax[0, 2].plot(time, inertia_torque, label = 'inertia torque')
+ax[0, 2].plot(time, load_torque, label = 'load torque')
+ax[1, 2].plot(time, resistance_torque_to_motor, label = 'resistance torque on motor')
+ax[1, 2].plot(time, motor_torque, label = 'motor torque')
+ax[2, 2].plot(time, motor_current)
+
+ax[0, 2].legend()
+ax[1, 2].legend()
 
 plt.show()
