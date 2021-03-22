@@ -7,8 +7,7 @@ import matplotlib.pyplot as plt
 
 # motor data
 I_r = 4e-4      # kgm2 - inertia of the rotor
-I_0 = 0.043     # A    - no load current
-I_s = 0.87      # A    - stall current
+current_curve = pd.read_csv(r'data\current_torque_motor_curve.csv')
 motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
 
 # load data
@@ -44,7 +43,7 @@ dd_alpha = [dd_beta[-1]*i]
 # set up interpolation tables
 motor_torque_table = interp1d(motor_curve['alpha'], motor_curve['torque'], fill_value = 'extrapolate')
 load_table = interp1d(load_curve['beta'], load_curve['torque'], fill_value = 'extrapolate')
-current_table = interp1d([0, motor_curve['torque'].max()], [I_0, I_s], fill_value = 'extrapolate')
+current_table = interp1d(current_curve['torque'], current_curve['current'], fill_value = 'extrapolate')
 
 # integration
 for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
