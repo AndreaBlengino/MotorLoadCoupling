@@ -44,7 +44,7 @@ dd_alpha = [dd_beta[-1]*i]
 # set up interpolation tables
 motor_torque_table = interp1d(motor_curve['alpha'], motor_curve['torque'], fill_value = 'extrapolate')
 load_table = interp1d(load_curve['beta'], load_curve['torque'], fill_value = 'extrapolate')
-
+current_table = interp1d([0, motor_curve['torque'].max()], [I_0, I_s], fill_value = 'extrapolate')
 
 # integration
 for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
@@ -57,6 +57,7 @@ for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
 
     resistance_torque_to_motor = load_torque/i/eta
     motor_torque = motor_torque_table(d_alpha[-1])
+    motor_current = current_table(motor_torque)
     dd_alpha_i = (motor_torque - resistance_torque_to_motor)/I_r
     dd_alpha.append(dd_alpha_i)
 
