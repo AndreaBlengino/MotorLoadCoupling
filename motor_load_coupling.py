@@ -11,7 +11,6 @@ motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
 current_curve = pd.read_csv(r'data\current_speed_motor_curve.csv')
 load_curve = pd.read_csv(r'data\load_resistance.csv')
 
-
 # unit conversion
 motor_curve['d_alpha'] = motor_curve['d_alpha']*2*np.pi/60       # from rpm to rad/s
 current_curve['d_alpha'] = current_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
@@ -42,6 +41,8 @@ for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretizati
 
     time.append(time[-1] + time_discretization)
 
+    # calculation of the resistant torque to the motor by adding the load resistance
+    # by its characteristic curve and the load inertia, all divided by the total gear ratio
     resistance_torque_i = load_table(beta[-1])
     resistance_torque.append(resistance_torque_i)
     inertia_torque_i = dd_beta[-1]*load_inertia
@@ -51,9 +52,12 @@ for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretizati
     resistance_torque_to_motor_i = load_torque_i/gear_ratio/efficiency
     resistance_torque_to_motor.append(resistance_torque_to_motor_i)
 
+    # calculation of the motor torque by its characteristic curve
     motor_torque_i = motor_torque_table(d_alpha[-1])
     motor_torque.append(motor_torque_i)
 
+    # calculation of the motor acceleration by torque equilibrium equation
+    # and motor velocity and position by integration with trapezoidal rule
     dd_alpha_i = (motor_torque_i - resistance_torque_to_motor_i)/rotor_inertia
     dd_alpha.append(dd_alpha_i)
     d_alpha_i = (dd_alpha[-1] + dd_alpha[-2])*(time[-1] - time[-2])/2 + d_alpha[-1]
@@ -61,9 +65,11 @@ for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretizati
     alpha_i = (d_alpha[-1] + d_alpha[-2])*(time[-1] - time[-2])/2 + alpha[-1]
     alpha.append(alpha_i)
 
+    # calculation of the motor current by its characteristic curve
     motor_current_i = current_table(d_alpha_i)
     motor_current.append(motor_current_i)
 
+    # calculation of the load position, velocity and acceleration by gear ratio division
     beta_i = alpha_i/gear_ratio
     beta.append(beta_i)
     d_beta_i = d_alpha_i/gear_ratio
