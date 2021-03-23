@@ -4,27 +4,12 @@ import pandas as pd
 from tqdm import tqdm
 from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
+from data.coupling_data import *
 
-# motor data
-rotor_inertia = 4e-4  # kgm2 - inertia of the rotor
+# motor and load characteristics curves reading
 motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
 current_curve = pd.read_csv(r'data\current_speed_motor_curve.csv')
-
-# load data
-load_inertia = 1.2    # kgm2 - inertia of the load
 load_curve = pd.read_csv(r'data\load_resistance.csv')
-
-# gearbox data
-gear_ratio = 80       #      - total gear ratio
-efficiency = 0.7      #      - gearbox efficiency
-
-# initial conditions
-beta_0 = 0            # rad    - initial load position
-d_beta_0 = 0          # rad/s  - initial load velocity
-
-# simulation time
-simulation_time = 50          # s   - simulation time
-time_discretization = 0.001   # s   - time discretization
 
 
 # unit conversion
