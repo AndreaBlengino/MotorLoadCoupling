@@ -7,8 +7,8 @@ import matplotlib.pyplot as plt
 
 # motor data
 I_r = 4e-4      # kgm2 - inertia of the rotor
-current_curve = pd.read_csv(r'data\current_torque_motor_curve.csv')
 motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
+current_curve = pd.read_csv(r'data\current_speed_motor_curve.csv')
 
 # load data
 I_l = 1.2       # kgm2 - inertia of the load
@@ -19,17 +19,18 @@ i = 80          #      - total gear ratio
 eta = 0.7       #      - gearbox efficiency
 
 # initial conditions
-beta_0 = 0     # rad    - initial load position
-d_beta_0 = 0   # rad/s  - initial load velocity
+beta_0 = 0      # rad    - initial load position
+d_beta_0 = 0    # rad/s  - initial load velocity
 
 # simulation time
-T = 50           # s   - simulation time
-dt = 0.001       # s   - time discretization
+T = 50          # s   - simulation time
+dt = 0.001      # s   - time discretization
 
 
 # unit conversion
-motor_curve['d_alpha'] = motor_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
-load_curve['beta'] = load_curve['beta']/180*np.pi            # from deg to rad
+motor_curve['d_alpha'] = motor_curve['d_alpha']*2*np.pi/60       # from rpm to rad/s
+current_curve['d_alpha'] = current_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
+load_curve['beta'] = load_curve['beta']/180*np.pi                # from deg to rad
 
 # initialize arrays
 time = [0]
@@ -49,7 +50,7 @@ motor_current = [0]
 # set up interpolation tables
 motor_torque_table = interp1d(motor_curve['d_alpha'], motor_curve['torque'], fill_value = 'extrapolate')
 load_table = interp1d(load_curve['beta'], load_curve['torque'], fill_value = 'extrapolate')
-current_table = interp1d(current_curve['torque'], current_curve['current'], fill_value = 'extrapolate')
+current_table = interp1d(current_curve['d_alpha'], current_curve['current'], fill_value = 'extrapolate')
 
 # integration
 for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
@@ -67,8 +68,6 @@ for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
 
     motor_torque_i = motor_torque_table(d_alpha[-1])
     motor_torque.append(motor_torque_i)
-    motor_current_i = current_table(motor_torque_i)
-    motor_current.append(motor_current_i)
 
     dd_alpha_i = (motor_torque_i - resistance_torque_to_motor_i)/I_r
     dd_alpha.append(dd_alpha_i)
@@ -76,6 +75,9 @@ for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
     d_alpha.append(d_alpha_i)
     alpha_i = (d_alpha[-1] + d_alpha[-2])*(time[-1] - time[-2])/2 + alpha[-1]
     alpha.append(alpha_i)
+
+    motor_current_i = current_table(d_alpha_i)
+    motor_current.append(motor_current_i)
 
     beta_i = alpha_i/i
     beta.append(beta_i)
