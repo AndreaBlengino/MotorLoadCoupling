@@ -28,8 +28,8 @@ dt = 0.001       # s   - time discretization
 
 
 # unit conversion
-motor_curve['alpha'] = motor_curve['alpha']*2*np.pi/60  # from rpm to rad/s
-load_curve['beta'] = load_curve['beta']/180*np.pi       # from deg to rad
+motor_curve['d_alpha'] = motor_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
+load_curve['beta'] = load_curve['beta']/180*np.pi            # from deg to rad
 
 # initialize arrays
 time = [0]
@@ -47,7 +47,7 @@ motor_torque = [0]
 motor_current = [0]
 
 # set up interpolation tables
-motor_torque_table = interp1d(motor_curve['alpha'], motor_curve['torque'], fill_value = 'extrapolate')
+motor_torque_table = interp1d(motor_curve['d_alpha'], motor_curve['torque'], fill_value = 'extrapolate')
 load_table = interp1d(load_curve['beta'], load_curve['torque'], fill_value = 'extrapolate')
 current_table = interp1d(current_curve['torque'], current_curve['current'], fill_value = 'extrapolate')
 
