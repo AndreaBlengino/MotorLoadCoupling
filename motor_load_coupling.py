@@ -86,22 +86,53 @@ for _ in tqdm(np.arange(dt, T + dt, dt), ncols = 100):
 
 
 # plotting
-fig, ax = plt.subplots(3, 3)
+axes_label_size = 14
+tick_label_size = 12
+legend_size = 14
 
-ax[0, 0].plot(time, alpha)
-ax[1, 0].plot(time, d_alpha)
+plt.style.use('seaborn-darkgrid')
+fig, ax = plt.subplots(3, 3, sharex = 'all')
+plt.tight_layout()
+plt.setp(ax, xlim = (time[0], time[-1]))
+
+ax[0, 0].plot(time, np.array(alpha)/2/np.pi)
+ax[1, 0].plot(time, np.array(d_alpha)*60/2/np.pi)
 ax[2, 0].plot(time, dd_alpha)
-ax[0, 1].plot(time, beta)
-ax[1, 1].plot(time, d_beta)
+ax[0, 1].plot(time, np.array(beta)/2/np.pi)
+ax[1, 1].plot(time, np.array(d_beta)*60/2/np.pi)
 ax[2, 1].plot(time, dd_beta)
-ax[0, 2].plot(time, resistance_torque, label = 'resistance torque')
-ax[0, 2].plot(time, inertia_torque, label = 'inertia torque')
-ax[0, 2].plot(time, load_torque, label = 'load torque')
-ax[1, 2].plot(time, resistance_torque_to_motor, label = 'resistance torque on motor')
-ax[1, 2].plot(time, motor_torque, label = 'motor torque')
+ax[0, 2].plot(time, resistance_torque, label = 'Resistance Torque')
+ax[0, 2].plot(time, inertia_torque, label = 'Inertia Torque')
+ax[0, 2].plot(time, load_torque, label = 'Load Torque')
+ax[1, 2].plot(time, resistance_torque_to_motor, label = 'Resistance Torque on Motor')
+ax[1, 2].plot(time, motor_torque, label = 'Motor Torque')
 ax[2, 2].plot(time, motor_current)
 
-ax[0, 2].legend()
-ax[1, 2].legend()
+ax[2, 0].set_xlabel('Time (s)')
+ax[2, 1].set_xlabel('Time (s)')
+ax[2, 2].set_xlabel('Time (s)')
+
+ax[0, 0].set_ylabel(r'Motor Position, $\alpha \ (rot.)$')
+ax[1, 0].set_ylabel(r'Motor Velocity, $\dot{\alpha} \ (rpm)$')
+ax[2, 0].set_ylabel(r'Motor Acceleration, $\ddot{\alpha} \ (rad/s^2)$')
+
+ax[0, 1].set_ylabel(r'Load Position, $\beta \ (rot.)$')
+ax[1, 1].set_ylabel(r'Load Velocity, $\dot{\beta} \ (rpm)$')
+ax[2, 1].set_ylabel(r'Load Acceleration, $\ddot{\beta} \ (rad/s^2)$')
+
+ax[0, 2].set_ylabel(r'Torque, $T \ (Nm)$')
+ax[1, 2].set_ylabel(r'Torque, $T \ (Nm)$')
+ax[2, 2].set_ylabel(r'Current, $I \ (A)$')
+
+ax[0, 2].legend(fontsize = legend_size, frameon = True)
+ax[1, 2].legend(fontsize = legend_size, frameon = True)
+
+for axi in ax.reshape(-1):
+    axi.xaxis.label.set_size(axes_label_size)
+    axi.yaxis.label.set_size(axes_label_size)
+    for tick in axi.xaxis.get_major_ticks():
+        tick.label.set_fontsize(tick_label_size)
+    for tick in axi.yaxis.get_major_ticks():
+        tick.label.set_fontsize(tick_label_size)
 
 plt.show()
