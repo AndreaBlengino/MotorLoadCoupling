@@ -5,6 +5,9 @@ rotor_inertia = 4e-4
 # inertia of the load in kgm2
 load_inertia = 1.2
 
+# repetition of the load resistance curve
+load_repetition = True
+
 # total gear ratio
 gear_ratio = 80
 

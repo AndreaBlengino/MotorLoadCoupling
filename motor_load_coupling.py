@@ -43,7 +43,10 @@ for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretizati
 
     # calculation of the resistant torque to the motor by adding the load resistance
     # by its characteristic curve and the load inertia, all divided by the total gear ratio
-    resistance_torque_i = load_table(beta[-1])
+    if load_repetition and beta[-1] > load_curve['beta'].max():
+        resistance_torque_i = load_table(beta[-1] % (2*np.pi))
+    else:
+        resistance_torque_i = load_table(beta[-1])
     resistance_torque.append(resistance_torque_i)
     inertia_torque_i = dd_beta[-1]*load_inertia
     inertia_torque.append(inertia_torque_i)
