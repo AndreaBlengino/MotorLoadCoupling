@@ -6,35 +6,64 @@ from scipy.interpolate import interp1d
 import matplotlib.pyplot as plt
 from data.coupling_data import *
 
+
 # motor and load characteristics curves reading
 motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
 current_curve = pd.read_csv(r'data\current_speed_motor_curve.csv')
 load_curve = pd.read_csv(r'data\load_resistance.csv')
 
+
 # unit conversion
 motor_curve['d_alpha'] = motor_curve['d_alpha']*2*np.pi/60       # from rpm to rad/s
 current_curve['d_alpha'] = current_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
 load_curve['beta'] = load_curve['beta']/180*np.pi                # from deg to rad
+beta_0 = beta_0/180*np.pi                                        # from deg to rad
+d_beta_0 = d_beta_0*2*np.pi/60                                   # from rpm to rad/s
 
-# initialize arrays
-time = [0]
-beta = [beta_0]
-d_beta = [d_beta_0]
-dd_beta = [0]
-alpha = [beta[-1]*gear_ratio]
-d_alpha = [d_beta[-1]*gear_ratio]
-dd_alpha = [dd_beta[-1]*gear_ratio]
-resistance_torque = [0]
-inertia_torque = [0]
-load_torque = [0]
-resistance_torque_to_motor = [0]
-motor_torque = [0]
-motor_current = [0]
 
 # set up interpolation tables
 motor_torque_table = interp1d(motor_curve['d_alpha'], motor_curve['torque'], fill_value = 'extrapolate')
 load_table = interp1d(load_curve['beta'], load_curve['torque'], fill_value = 'extrapolate')
 current_table = interp1d(current_curve['d_alpha'], current_curve['current'], fill_value = 'extrapolate')
+
+
+# array initialization function
+def array_initialization():
+    time = [0]
+    beta = [beta_0]
+    d_beta = [d_beta_0]
+    alpha = [beta[-1]*gear_ratio]
+    d_alpha = [d_beta[-1]*gear_ratio]
+    dd_alpha = [dd_beta[-1]*gear_ratio]
+    resistance_torque = [load_table(beta[-1])]
+    inertia_torque = [dd_beta[-1]*load_inertia]
+    load_torque = [resistance_torque[-1] + inertia_torque[-1]]
+    resistance_torque_to_motor = [load_torque[-1]/gear_ratio/efficiency]
+    motor_torque = [motor_torque_table(d_alpha[-1])]
+    motor_current = [current_table(d_alpha[-1])]
+    return time, beta, d_beta, alpha, d_alpha, dd_alpha, resistance_torque, inertia_torque, load_torque, \
+           resistance_torque_to_motor, motor_torque, motor_current
+
+# first attempt value
+dd_beta = [0]
+
+# iterative correction of dd_beta
+for _ in range(20):
+
+    time, beta, d_beta, alpha, d_alpha, dd_alpha, resistance_torque, inertia_torque, load_torque, \
+    resistance_torque_to_motor, motor_torque, motor_current = array_initialization()
+
+    dd_alpha.append((motor_torque[-1] - resistance_torque_to_motor[-1])/rotor_inertia)
+    d_alpha.append((dd_alpha[-1] + dd_alpha[-2])*time_discretization/2 + d_alpha[-1])
+    d_beta.append(d_alpha[-1]/gear_ratio)
+
+    dd_beta_0 = (d_beta[-1] - d_beta[-2])/time_discretization
+    dd_beta = [dd_beta_0]
+
+# initialize arrays
+time, beta, d_beta, alpha, d_alpha, dd_alpha, resistance_torque, inertia_torque, load_torque, \
+resistance_torque_to_motor, motor_torque, motor_current = array_initialization()
+
 
 # integration
 for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretization, time_discretization), ncols = 100):
