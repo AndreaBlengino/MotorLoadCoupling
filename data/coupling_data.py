@@ -13,10 +13,10 @@ efficiency = 0.7
 
 
 ## initial conditions
-# initial load position in rad
+# initial load position in deg
 beta_0 = 0
 
-# initial load velocity in rad/s
+# initial load velocity in rpm
 d_beta_0 = 0
 
 

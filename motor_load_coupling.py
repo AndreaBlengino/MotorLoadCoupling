@@ -15,6 +15,8 @@ load_curve = pd.read_csv(r'data\load_resistance.csv')
 motor_curve['d_alpha'] = motor_curve['d_alpha']*2*np.pi/60       # from rpm to rad/s
 current_curve['d_alpha'] = current_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
 load_curve['beta'] = load_curve['beta']/180*np.pi                # from deg to rad
+beta_0 = beta_0/180*np.pi                                        # from deg to rad
+d_beta_0 = d_beta_0*2*np.pi/60                                   # from rpm to rad/s
 
 # initialize arrays
 time = [0]
