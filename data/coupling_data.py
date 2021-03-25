@@ -5,7 +5,7 @@ rotor_inertia = 4e-4
 # inertia of the load in kgm2
 load_inertia = 1.2
 
-# repetition of the load resistance curve
+# repetition of the load resistant torque curve
 load_repetition = True
 
 # total gear ratio
@@ -19,7 +19,7 @@ efficiency = 0.7
 # initial load position in deg
 beta_0 = 0
 
-# initial load velocity in rpm
+# initial load speed in rpm
 d_beta_0 = 0
 
 

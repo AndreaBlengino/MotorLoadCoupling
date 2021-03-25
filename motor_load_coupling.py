@@ -89,7 +89,7 @@ for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretizati
     motor_torque.append(motor_torque_i)
 
     # calculation of the motor acceleration by torque equilibrium equation
-    # and motor velocity and position by integration with trapezoidal rule
+    # and motor speed and position by integration with trapezoidal rule
     dd_alpha_i = (motor_torque_i - resistance_torque_to_motor_i)/rotor_inertia
     dd_alpha.append(dd_alpha_i)
     d_alpha_i = (dd_alpha[-1] + dd_alpha[-2])*(time[-1] - time[-2])/2 + d_alpha[-1]
@@ -101,7 +101,7 @@ for _ in tqdm(np.arange(time_discretization, simulation_time + time_discretizati
     motor_current_i = current_table(d_alpha_i)
     motor_current.append(motor_current_i)
 
-    # calculation of the load position, velocity and acceleration by gear ratio division
+    # calculation of the load position, speed and acceleration by gear ratio division
     beta_i = alpha_i/gear_ratio
     beta.append(beta_i)
     d_beta_i = d_alpha_i/gear_ratio
@@ -126,10 +126,10 @@ ax[2, 0].plot(time, dd_alpha)
 ax[0, 1].plot(time, np.array(beta)/2/np.pi)
 ax[1, 1].plot(time, np.array(d_beta)*60/2/np.pi)
 ax[2, 1].plot(time, dd_beta)
-ax[0, 2].plot(time, resistance_torque, label = 'Resistance Torque')
+ax[0, 2].plot(time, resistance_torque, label = 'Resistant Torque')
 ax[0, 2].plot(time, inertia_torque, label = 'Inertia Torque')
 ax[0, 2].plot(time, load_torque, label = 'Load Torque')
-ax[1, 2].plot(time, resistance_torque_to_motor, label = 'Resistance Torque on Motor')
+ax[1, 2].plot(time, resistance_torque_to_motor, label = 'Resistant Torque on Motor')
 ax[1, 2].plot(time, motor_torque, label = 'Motor Torque')
 ax[2, 2].plot(time, motor_current)
 
@@ -138,11 +138,11 @@ ax[2, 1].set_xlabel('Time (s)')
 ax[2, 2].set_xlabel('Time (s)')
 
 ax[0, 0].set_ylabel(r'Motor Position, $\alpha \ (rot.)$')
-ax[1, 0].set_ylabel(r'Motor Velocity, $\dot{\alpha} \ (rpm)$')
+ax[1, 0].set_ylabel(r'Motor Speed, $\dot{\alpha} \ (rpm)$')
 ax[2, 0].set_ylabel(r'Motor Acceleration, $\ddot{\alpha} \ (rad/s^2)$')
 
 ax[0, 1].set_ylabel(r'Load Position, $\beta \ (rot.)$')
-ax[1, 1].set_ylabel(r'Load Velocity, $\dot{\beta} \ (rpm)$')
+ax[1, 1].set_ylabel(r'Load Speed, $\dot{\beta} \ (rpm)$')
 ax[2, 1].set_ylabel(r'Load Acceleration, $\ddot{\beta} \ (rad/s^2)$')
 
 ax[0, 2].set_ylabel(r'Torque, $T \ (Nm)$')
