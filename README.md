@@ -12,7 +12,7 @@ Any type of electric motor with a known torque-speed characteristic can be consi
 
 The general scheme of the coupling is shown in the image: 
 
-<img src="docs\scheme.png" width="1000" height="360">
+<img src="docs\scheme.png" width="830" height="300">
 
 The position of the motor shaft is indicated by α and the load shaft one by β. 
 
@@ -121,7 +121,7 @@ The script produces a series of plots showing:
 
 Taking the above data as an example, the calculation script will provide the following plots as a result:
  
-<img src="docs\output_plot.png" width="1000" height="510">
+<img src="docs\output_plot.png" width="830" height="415">
 
 
 ## Contributing
