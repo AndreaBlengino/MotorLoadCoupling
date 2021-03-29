@@ -85,44 +85,29 @@ class Program:
 
             self.time.append(self.time[-1] + self.time_discretization)
 
-            # calculation of the resistant torque to the motor by adding the load resistance
-            # by its characteristic curve and the load inertia, all divided by the total gear ratio
+            self.d_beta.append(self.d_beta[-1] + self.dd_beta[-1]*self.time_discretization)
+            self.beta.append(self.beta[-1] + self.d_beta[-1]*self.time_discretization)
+
+            motor_torque = self.motor_torque_table(self.gear_ratio*self.d_beta[-1])
+
             if self.load_repetition and self.beta[-1] > self.load_curve['beta'].max():
-                resistance_torque_i = self.load_table(self.beta[-1] % (2*np.pi))
+                resistance_torque = self.load_table(self.beta[-1] % (2*np.pi))
             else:
-                resistance_torque_i = self.load_table(self.beta[-1])
-            self.resistance_torque.append(resistance_torque_i)
-            inertia_torque_i = self.dd_beta[-1]*self.load_inertia
-            self.inertia_torque.append(inertia_torque_i)
-            load_torque_i = resistance_torque_i + inertia_torque_i
-            self.load_torque.append(load_torque_i)
-            resistance_torque_to_motor_i = load_torque_i/self.gear_ratio/self.efficiency
-            self.resistance_torque_to_motor.append(resistance_torque_to_motor_i)
+                resistance_torque = self.load_table(self.beta[-1])
 
-            # calculation of the motor torque by its characteristic curve
-            motor_torque_i = self.motor_torque_table(self.d_alpha[-1])
-            self.motor_torque.append(motor_torque_i)
+            self.dd_beta.append((motor_torque - resistance_torque/self.gear_ratio/self.efficiency)/
+                                (self.gear_ratio*self.rotor_inertia + self.load_inertia/self.gear_ratio/self.efficiency))
 
-            # calculation of the motor acceleration by torque equilibrium equation
-            # and motor speed and position by integration with trapezoidal rule
-            dd_alpha_i = (motor_torque_i - resistance_torque_to_motor_i)/self.rotor_inertia
-            self.dd_alpha.append(dd_alpha_i)
-            d_alpha_i = (self.dd_alpha[-1] + self.dd_alpha[-2])*(self.time[-1] - self.time[-2])/2 + self.d_alpha[-1]
-            self.d_alpha.append(d_alpha_i)
-            alpha_i = (self.d_alpha[-1] + self.d_alpha[-2])*(self.time[-1] - self.time[-2])/2 + self.alpha[-1]
-            self.alpha.append(alpha_i)
+            self.alpha.append(self.beta[-1]*self.gear_ratio)
+            self.d_alpha.append(self.d_beta[-1]*self.gear_ratio)
+            self.dd_alpha.append(self.dd_beta[-1]*self.gear_ratio)
 
-            # calculation of the motor current by its characteristic curve
-            motor_current_i = self.current_table(d_alpha_i)
-            self.motor_current.append(motor_current_i)
-
-            # calculation of the load position, speed and acceleration by gear ratio division
-            beta_i = alpha_i/self.gear_ratio
-            self.beta.append(beta_i)
-            d_beta_i = d_alpha_i/self.gear_ratio
-            self.d_beta.append(d_beta_i)
-            dd_beta_i = dd_alpha_i/self.gear_ratio
-            self.dd_beta.append(dd_beta_i)
+            self.resistance_torque.append(resistance_torque)
+            self.inertia_torque.append(self.dd_beta[-1]*self.load_inertia)
+            self.load_torque.append(self.resistance_torque[-1] + self.inertia_torque[-1])
+            self.resistance_torque_to_motor.append(self.load_torque[-1]/self.gear_ratio/self.efficiency)
+            self.motor_torque.append(motor_torque)
+            self.motor_current.append(self.current_table(self.d_alpha[-1]))
 
     def plotting(self):
 
