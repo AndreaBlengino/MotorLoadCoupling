@@ -23,7 +23,6 @@ class Program:
         self.load_data()
         self.unit_conversion()
         self.interpolation_tables()
-        self.dd_beta_iterative_correction()
         self.array_initialization()
         self.integration()
         self.plotting()
@@ -60,31 +59,23 @@ class Program:
         self.time = [0]
         self.beta = [self.beta_0]
         self.d_beta = [self.d_beta_0]
+
+        motor_torque = self.motor_torque_table(self.gear_ratio*self.d_beta[-1])
+        resistance_torque = self.load_table(self.beta[-1])
+
+        self.dd_beta = [(motor_torque - resistance_torque/self.gear_ratio/self.efficiency)/
+                        (self.gear_ratio*self.rotor_inertia + self.load_inertia/self.gear_ratio/self.efficiency)]
+
         self.alpha = [self.beta[-1]*self.gear_ratio]
         self.d_alpha = [self.d_beta[-1]*self.gear_ratio]
         self.dd_alpha = [self.dd_beta[-1]*self.gear_ratio]
-        self.resistance_torque = [self.load_table(self.beta[-1])]
+
+        self.resistance_torque = [resistance_torque]
         self.inertia_torque = [self.dd_beta[-1]*self.load_inertia]
         self.load_torque = [self.resistance_torque[-1] + self.inertia_torque[-1]]
         self.resistance_torque_to_motor = [self.load_torque[-1]/self.gear_ratio/self.efficiency]
-        self.motor_torque = [self.motor_torque_table(self.d_alpha[-1])]
+        self.motor_torque = [motor_torque]
         self.motor_current = [self.current_table(self.d_alpha[-1])]
-
-    def dd_beta_iterative_correction(self):
-
-        # first attempt value
-        self.dd_beta = [0]
-
-        for _ in range(20):
-
-            self.array_initialization()
-
-            self.dd_alpha.append((self.motor_torque[-1] - self.resistance_torque_to_motor[-1])/self.rotor_inertia)
-            self.d_alpha.append((self.dd_alpha[-1] + self.dd_alpha[-2])*self.time_discretization/2 + self.d_alpha[-1])
-            self.d_beta.append(self.d_alpha[-1]/self.gear_ratio)
-
-            self.dd_beta_0 = (self.d_beta[-1] - self.d_beta[-2])/self.time_discretization
-            self.dd_beta = [self.dd_beta_0]
 
     def integration(self):
 
