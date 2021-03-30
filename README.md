@@ -25,16 +25,16 @@ The **motor** is described through the following data:
 file in the [data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder.
 The curve expresses the driving torque delivered by the motor as a function of its rotation speed. 
 The file is structured in two columns:
-   + `d_alpha` which reports the motor rotation speed, expressed in rpm
-   + `torque` which reports the motor torque, expressed in Nm
+   + `d_alpha` which reports the motor rotation speed, expressed in _rpm_
+   + `torque` which reports the motor torque, expressed in _Nm_
 - current-speed characteristic curve, saved in the 
 [`current_speed_motor_curve.csv`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/current_speed_motor_curve.csv) 
 file in the [data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder.
 The curve expresses the electric current absorbed by the motor as a function of its rotation speed. 
 The file is structured in two columns:
-   + `d_alpha` which reports the motor rotation speed, expressed in rpm
-   + `current` which reports the motor torque, expressed in A
-- `rotor_inertia` is the moment of inertia of the rotor. This data expressed in kgm<sup>2</sup> in the
+   + `d_alpha` which reports the motor rotation speed, expressed in _rpm_
+   + `current` which reports the motor torque, expressed in _A_
+- `rotor_inertia` is the moment of inertia of the rotor. This data expressed in _kgm<sup>2</sup>_ in the
  [`coupling_data.py`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/coupling_data.py) 
  file in the [data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder. 
 
@@ -44,9 +44,9 @@ The **load** is described through the following data:
 file in the [data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder.
 The curve expresses the resistant torque exerted by the load as a function of its position. 
 The file is structured in two columns:
-   + `beta` which reports the position of the load, expressed in °
-   + `torque` which shows the resistant torque of the load, expressed in Nm
-- `load_inertia` is the moment of inertia of the load. This data expressed in kgm<sup>2</sup> in the 
+   + `beta` which reports the position of the load, expressed in _°_
+   + `torque` which shows the resistant torque of the load, expressed in _Nm_
+- `load_inertia` is the moment of inertia of the load. This data expressed in _kgm<sup>2</sup>_ in the 
 [`coupling_data.py`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/coupling_data.py) 
 file inside the [data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder.
 - `load_repetition` is a boolean parameter. If, during the simulation, the value of the load position `beta` exceeds 
@@ -65,14 +65,35 @@ The **gearbox** is described through the following data, each of the following d
 - `gear_ratio` is the total transmission ratio, expressed as the ratio of the rotation speed of the motor and the one of the load
 - `efficiency` is the overall efficiency of the gearbox 
 
-Finally it is necessary to set the initial conditions and specify some information about the time integration.
+Then it is necessary to set the **initial conditions**.  
 Each of the following data is saved in the 
 [`coupling_data.py`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/coupling_data.py) file in the 
 [data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder:
-- `beta_0` is the initial position of the load, expressed in °
-- `d_beta_0` is the initial speed of the load, expressed in rpm
-- `simulation_time` is the total duration of the simulation, expressed in s
-- `time_discretization` is the time discretization, expressed in s 
+- `beta_0` is the initial position of the load, expressed in _°_
+- `d_beta_0` is the initial speed of the load, expressed in _rpm_
+
+
+Finally some parameters regarding **integration** process.  
+Each of the following data is saved in the 
+[`coupling_data.py`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/coupling_data.py) file in the 
+[data](https://github.com/AndreaBlengino/Motor-Load-Coupling/tree/dev/data) folder:
+- `simulation_time` is the total duration of the simulation, expressed in _s_
+- `step_type` indicates whether to use a fixed or variable time step. Depending on its value, other parameters are set and 
+two different integration methods are used:
+    + if `'fixed'` the time integration is done through an [explicit Euler method](https://en.wikipedia.org/wiki/Euler_method). 
+    This option is recommended in most cases.  
+    In this case the user has to specify another parameter:
+        * `time_discretization` is the time step, expressed in _s_
+    + if `'variable'` the time integration is done through a _real-valued Variable-coefficient Ordinary Differential Equation solver 
+    with a method based on backward differentiation formulas_ from 
+    [`scipy.integration.ode`](https://docs.scipy.org/doc/scipy/reference/generated/scipy.integrate.ode.html). 
+    This option is recommended only if the system is governed by a [stiff equation](https://en.wikipedia.org/wiki/Stiff_equation) 
+    that causes problems of numerical instability in the case of integration with a fixed time step.  
+    In this case the user has to specify some other parameters:
+        * `first_step` is the size of the first time step in _s_
+        * `min_step` is the minimum time step in _s_
+        * `max_step` is the maximum time step in _s_
+        * `order`: is the maximum order used by the integrator, <= 5
 
 #### Example
 
@@ -95,17 +116,18 @@ As an example of a load, we consider a load with the following characteristic, r
 
 The other data to be used as an example are shown in the table:
 
-| Name                   | Variable              | Value             | Unit            |
-|:-----------------------|:---------------------:|------------------:|:----------------|
-| inertia of the rotor   | `rotor_inertia`       | 4x10<sup>-4</sup> | kgm<sup>2</sup> |
-| inertia of the load    | `load_inertia`        | 1.2               | kgm<sup>2</sup> |
-| repetitoin of the load | `load_repetition`     | `True`            |                 |
-| gear ratio             | `gear_ratio`          | 80                |                 |
-| gearbox efficiency     | `efficiency`          | 0.7               |                 |
-| initial load position  | `beta_0`              | 0                 | °               |
-| initial load speed     | `d_beta_0`            | 0                 | rpm             |
-| simulation duration    | `simulation_time`     | 50                | s               |
-| time discretization    | `time_discretization` | 0.001             | s               |
+| Name                   | Variable              | Value             | Unit              |
+|:-----------------------|:---------------------:|------------------:|:------------------|
+| inertia of the rotor   | `rotor_inertia`       | 4x10<sup>-4</sup> | _kgm<sup>2</sup>_ |
+| inertia of the load    | `load_inertia`        | 1.2               | _kgm<sup>2</sup>_ |
+| repetitoin of the load | `load_repetition`     | `True`            |                   |
+| gear ratio             | `gear_ratio`          | 80                |                   |
+| gearbox efficiency     | `efficiency`          | 0.7               |                   |
+| initial load position  | `beta_0`              | 0                 | _°_               |
+| initial load speed     | `d_beta_0`            | 0                 | _rpm_             |
+| simulation duration    | `simulation_time`     | 50                | _s_               |
+| type of time step      | `step_type`           | `'fixed'`         |                   |
+| time discretization    | `time_discretization` | 0.001             | _s_               |
 
 
 ### Output plot
