@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 from tqdm import tqdm
 from scipy.interpolate import interp1d
+from scipy.integrate import ode
 import matplotlib.pyplot as plt
 from data.coupling_data import *
 
@@ -16,7 +17,12 @@ class Program:
     beta_0 = beta_0
     d_beta_0 = d_beta_0
     simulation_time = simulation_time
+    step_type = step_type
     time_discretization = time_discretization
+    first_step = first_step
+    min_step = min_step
+    max_step = max_step
+    order = order
 
     def __init__(self):
 
@@ -24,7 +30,7 @@ class Program:
         self.unit_conversion()
         self.interpolation_tables()
         self.array_initialization()
-        self.integration()
+        self.step_type_choice()
         self.plotting()
 
     def load_data(self):
@@ -77,37 +83,94 @@ class Program:
         self.motor_torque = [motor_torque]
         self.motor_current = [self.current_table(self.d_alpha[-1])]
 
-    def integration(self):
+    def step_type_choice(self):
+
+        if self.step_type == 'fixed':
+            self.integration_fixed_step()
+        elif self.step_type == 'variable':
+            self.integration_variable_step()
+        else:
+            raise ValueError("step_type must be 'fixed' or 'variable'")
+
+    def integration_fixed_step(self):
 
         for _ in tqdm(np.arange(self.time_discretization,
                                 self.simulation_time + self.time_discretization,
-                                self.time_discretization), ncols = 100):
+                                self.time_discretization),
+                      ncols = 100,
+                      bar_format = '{desc}: {percentage:.0f}%|{bar}| {n:.0f}/{total:.0f} '
+                                   '[{elapsed}<{remaining}, {rate_fmt}{postfix}]'):
 
             self.time.append(self.time[-1] + self.time_discretization)
 
             self.d_beta.append(self.d_beta[-1] + self.dd_beta[-1]*self.time_discretization)
             self.beta.append(self.beta[-1] + self.d_beta[-1]*self.time_discretization)
 
-            motor_torque = self.motor_torque_table(self.gear_ratio*self.d_beta[-1])
+            self.variables_updating()
 
-            if self.load_repetition and self.beta[-1] > self.load_curve['beta'].max():
-                resistance_torque = self.load_table(self.beta[-1] % (2*np.pi))
-            else:
-                resistance_torque = self.load_table(self.beta[-1])
+    def integration_variable_step(self):
 
-            self.dd_beta.append((motor_torque - resistance_torque/self.gear_ratio/self.efficiency)/
-                                (self.gear_ratio*self.rotor_inertia + self.load_inertia/self.gear_ratio/self.efficiency))
+        def ode_equation(t, y, acceleration):
 
-            self.alpha.append(self.beta[-1]*self.gear_ratio)
-            self.d_alpha.append(self.d_beta[-1]*self.gear_ratio)
-            self.dd_alpha.append(self.dd_beta[-1]*self.gear_ratio)
+            dydt = [y[1], acceleration]
 
-            self.resistance_torque.append(resistance_torque)
-            self.inertia_torque.append(self.dd_beta[-1]*self.load_inertia)
-            self.load_torque.append(self.resistance_torque[-1] + self.inertia_torque[-1])
-            self.resistance_torque_to_motor.append(self.load_torque[-1]/self.gear_ratio/self.efficiency)
-            self.motor_torque.append(motor_torque)
-            self.motor_current.append(self.current_table(self.d_alpha[-1]))
+            return dydt
+
+        y_init = [self.beta[-1], self.d_beta[-1]]
+
+        integrator = 'vode'
+        params = {'method': 'bdf',
+                  'nsteps': 1,
+                  'first_step': self.first_step,
+                  'min_step': self.min_step,
+                  'max_step': self.max_step,
+                  'order': self.order}
+
+        solver = ode(ode_equation).set_integrator(integrator, **params)
+        solver.set_initial_value(y_init)
+
+        with tqdm(total = simulation_time,
+                  ncols = 100,
+                  bar_format = '{desc}: {percentage:.0f}%|{bar}| {n:.2f}/{total:.2f} '
+                               '[{elapsed}<{remaining},{rate_fmt}{postfix}]') as progress_bar:
+
+            while solver.t < simulation_time:
+
+                self.time.append(solver.t)
+                progress_bar.update(self.time[-1] - self.time[-2])
+
+                solver.set_f_params(self.dd_beta[-1])
+                sol = solver.integrate(simulation_time, step = True)
+
+                self.beta.append(sol[0])
+                self.d_beta.append(sol[1])
+
+                self.variables_updating()
+
+            progress_bar.update(simulation_time - self.time[-1])
+
+    def variables_updating(self):
+
+        motor_torque = self.motor_torque_table(self.gear_ratio*self.d_beta[-1])
+
+        if self.load_repetition and self.beta[-1] > self.load_curve['beta'].max():
+            resistance_torque = self.load_table(self.beta[-1]%(2*np.pi))
+        else:
+            resistance_torque = self.load_table(self.beta[-1])
+
+        self.dd_beta.append((motor_torque - resistance_torque/self.gear_ratio/self.efficiency)/
+                            (self.gear_ratio*self.rotor_inertia + self.load_inertia/self.gear_ratio/self.efficiency))
+
+        self.alpha.append(self.beta[-1]*self.gear_ratio)
+        self.d_alpha.append(self.d_beta[-1]*self.gear_ratio)
+        self.dd_alpha.append(self.dd_beta[-1]*self.gear_ratio)
+
+        self.resistance_torque.append(resistance_torque)
+        self.inertia_torque.append(self.dd_beta[-1]*self.load_inertia)
+        self.load_torque.append(self.resistance_torque[-1] + self.inertia_torque[-1])
+        self.resistance_torque_to_motor.append(self.load_torque[-1]/self.gear_ratio/self.efficiency)
+        self.motor_torque.append(motor_torque)
+        self.motor_current.append(self.current_table(self.d_alpha[-1]))
 
     def plotting(self):
 

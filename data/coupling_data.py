@@ -23,9 +23,24 @@ beta_0 = 0
 d_beta_0 = 0
 
 
-## simulation time
+## integration settings
 # total simulation time in s
 simulation_time = 50
 
-# time discretization in s
+# time step type: 'fixed' or 'variable'
+step_type = 'fixed'
+
+# time discretization in s, used only if step_type is 'fixed'
 time_discretization = 0.001
+
+# size of the first time step, used only if step_type is 'variable'
+first_step = 1e-6
+
+# minimum time step, used only if step_type is 'variable'
+min_step = 1e-6
+
+# maximum time step, used only if step_type is 'variable'
+max_step = 1e-3
+
+# maximum order used by the integrator, used only if step_type is 'variable'
+order = 5
