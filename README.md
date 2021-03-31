@@ -12,9 +12,12 @@ Any type of electric motor with a known torque-speed characteristic can be consi
 
 The general scheme of the coupling is shown in the image: 
 
-<img src="docs\scheme.png" width="830" height="300">
+<img src="docs\conceptual_scheme.png" width="830" height="270">
 
-The position of the motor shaft is indicated by α and the load shaft one by β. 
+The position of the motor shaft is indicated by α and the load shaft one by β.  
+The integration scheme of the coupling is:
+
+ <img src="docs\mathematical_scheme.png" width="830" height="340">
 
 
 ### Input data
@@ -101,13 +104,13 @@ As an example, we consider a DC motor whose torque characteristic, reported in t
 [`torque_speed_motor_curve.csv`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/torque_speed_motor_curve.csv) 
 file is the following:   
 
-<img src="docs\torque_motor.png">
+<img src="docs\motor_torque.png">
 
 while the current characteristic, reported in the 
 [`current_speed_motor_curve.csv`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/current_speed_motor_curve.csv) 
 file is: 
 
-<img src="docs\current_motor.png">
+<img src="docs\motor_current.png">
 
 As an example of a load, we consider a load with the following characteristic, reported in the 
 [`load_resistance.csv`](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/data/load_resistance.csv) file: 

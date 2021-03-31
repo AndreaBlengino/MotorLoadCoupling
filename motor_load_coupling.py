@@ -25,6 +25,18 @@ class Program:
     order = order
 
     def __init__(self):
+        """
+        Calls each calculation stage:
+
+            - self.load_data loads motor and load characteristics curves from 'data' folder
+            - self.unit_conversion converts units
+            - self.interpolation_tables creates interpolation tables for data loaded in self.load_data.
+            - self.array_initialization initializes arrays for motor and load positions, speeds, accelerations
+              and torques
+            - self.step_type_choice calls self.integration_fixed_step or self.integration_variable_step
+              based on self.step_type value
+            - self.plotting plots calculated positions, speeds, accelerations, torques and current in a 9x9 plot matrix
+        """
 
         self.load_data()
         self.unit_conversion()
@@ -34,13 +46,38 @@ class Program:
         self.plotting()
 
     def load_data(self):
+        """"
+        Loads motor and load characteristics curves from 'data' folder.
 
-        # motor and load characteristics curves reading
+            - Reads from 'torque_speed_motor_curve.csv' the motor speed-torque curve and save it in self.motor_curve.
+              The curve expresses the driving torque delivered by the motor as a function of its rotation speed.
+              The file is structured in two columns:
+                  - 'd_alpha' which reports the motor rotation speed, expressed in rpm
+                  - 'torque' which reports the motor torque, expressed in Nm
+
+            - Reads from 'current_speed_motor_curve.csv' the motor speed-current curve and save it in self.current_curve.
+              The curve expresses the electric current absorbed by the motor as a function of its rotation speed.
+              The file is structured in two columns:
+                  - 'd_alpha' which reports the motor rotation speed, expressed in rpm
+                  - 'current' which reports the motor torque, expressed in A
+
+
+            - Reads from 'load_resistance.csv' the motor speed-current curve and save it in self.load_curve.
+              The curve expresses the resistant torque exerted by the load as a function of its position.
+              The file is structured in two columns:
+                  - 'beta' which reports the position of the load, expressed in °
+                  - 'torque' which shows the resistant torque of the load, expressed in Nm
+        """
+
         self.motor_curve = pd.read_csv(r'data\torque_speed_motor_curve.csv')
         self.current_curve = pd.read_csv(r'data\current_speed_motor_curve.csv')
         self.load_curve = pd.read_csv(r'data\load_resistance.csv')
 
     def unit_conversion(self):
+        """
+        Converts units.
+        Converts from deg to rad 'beta' and beta_0' angles and from rpm to rad/s d_alpha and d_beta speeds.
+        """
 
         self.motor_curve['d_alpha'] = self.motor_curve['d_alpha']*2*np.pi/60       # from rpm to rad/s
         self.current_curve['d_alpha'] = self.current_curve['d_alpha']*2*np.pi/60   # from rpm to rad/s
@@ -49,18 +86,34 @@ class Program:
         self.d_beta_0 = self.d_beta_0*2*np.pi/60                                   # from rpm to rad/s
 
     def interpolation_tables(self):
+        """
+        Creates interpolation tables for data loaded in self.load_data.
+        Interpolation tables are used to get an output value through data interpolation starting from an input value.
+
+            - Saves in self.motor_torque_table the interpolation table for the driving torque delivered by the motor
+              as a function of its rotation speed.
+            - Saves in current_table the interpolation table for the electric current absorbed by the motor
+              as a function of its rotation speed.
+            - Saves in self.load_table the interpolation table for the resistant torque exerted by the load
+              as a function of its position.
+        """
 
         self.motor_torque_table = interp1d(self.motor_curve['d_alpha'],
                                            self.motor_curve['torque'],
                                            fill_value = 'extrapolate')
-        self.load_table = interp1d(self.load_curve['beta'],
-                                   self.load_curve['torque'],
-                                   fill_value = 'extrapolate')
         self.current_table = interp1d(self.current_curve['d_alpha'],
                                       self.current_curve['current'],
                                       fill_value = 'extrapolate')
+        self.load_table = interp1d(self.load_curve['beta'],
+                                   self.load_curve['torque'],
+                                   fill_value = 'extrapolate')
 
     def array_initialization(self):
+        """
+        Initializes arrays for motor and load positions, speeds, accelerations and torques.
+        All arrays are updated in each integration loop by appending the corresponding updated value
+        from self.integration_fixed_step or self.integration_variable_step based onself.step_type value.
+        """
 
         self.time = [0]
         self.beta = [self.beta_0]
@@ -84,6 +137,11 @@ class Program:
         self.motor_current = [self.current_table(self.d_alpha[-1])]
 
     def step_type_choice(self):
+        """
+        Calls self.integration_fixed_step or self.integration_variable_step based on self.step_type value.
+
+        :raises ValueError if step_type is neither 'fixed' nor 'variable'
+        """
 
         if self.step_type == 'fixed':
             self.integration_fixed_step()
@@ -93,6 +151,10 @@ class Program:
             raise ValueError("step_type must be 'fixed' or 'variable'")
 
     def integration_fixed_step(self):
+        """
+        Performs time integration loop in case of fixed time step.
+        The integration is done through an explicit Euler method.
+        """
 
         for _ in tqdm(np.arange(self.time_discretization,
                                 self.simulation_time + self.time_discretization,
@@ -109,8 +171,16 @@ class Program:
             self.variables_updating()
 
     def integration_variable_step(self):
+        """
+        Performs time integration loop in case of variable time step.
+        The integration is done through scipy.integrate.ode API.
+        """
 
         def ode_equation(t, y, acceleration):
+            """
+            Defines ODE equation. Returns dydt which is a list of the derivatives of y:
+            the first element is the speed, the second one the acceleration.
+            """
 
             dydt = [y[1], acceleration]
 
@@ -150,6 +220,11 @@ class Program:
             progress_bar.update(simulation_time - self.time[-1])
 
     def variables_updating(self):
+        """
+        Calculates motor position, speed and acceleration and
+        motor and load torques based on load position, velocity and acceleration.
+        It is called iteratively from self.integration_fixed_step or self.integration_variable_step.
+        """
 
         motor_torque = self.motor_torque_table(self.gear_ratio*self.d_beta[-1])
 
@@ -173,6 +248,9 @@ class Program:
         self.motor_current.append(self.current_table(self.d_alpha[-1]))
 
     def plotting(self):
+        """
+        Plots calculated positions, speeds, accelerations, torques and current in a 9x9 plot matrix.
+        """
 
         axes_label_size = 14
         tick_label_size = 12
