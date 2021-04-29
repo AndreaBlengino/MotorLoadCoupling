@@ -6,7 +6,7 @@ from tqdm import tqdm
 import matplotlib.pyplot as plt
 
 
-def load_data(parameters):
+def load_data(parameters: dict):
     """
     Loads data from file paths provided with set_characteristics_curves_files.
     Files in .csv format are read and stored as pandas.DataFrames in parameters dictionary.
@@ -23,7 +23,7 @@ def load_data(parameters):
     parameters['load_torque_curve'] = pd.read_csv(parameters['load_torque_curve_file'])
 
 
-def convert_units(parameters):
+def convert_units(parameters: dict):
     """
     Converts units.
     Converts angles from ° to rad and velocities from rpm to rad/s.
@@ -42,7 +42,7 @@ def convert_units(parameters):
     parameters['d_beta_0'] = parameters['d_beta_0']*2*np.pi/60
 
 
-def calculate_interpolation_tables(parameters):
+def calculate_interpolation_tables(parameters: dict):
     """
     Calculates interpolation tables for the characteristic curves loaded with load_data.
     Store them as key-value pairs in the parameters dictionary.
@@ -65,7 +65,7 @@ def calculate_interpolation_tables(parameters):
                                                fill_value = 'extrapolate')
 
 
-def initialize_arrays(parameters, variables):
+def initialize_arrays(parameters: dict, variables: dict):
     """
     Initializes arrays of the time-dependent variables.
     Stores them as key-value pairs in the variables dictionary.
@@ -102,7 +102,7 @@ def initialize_arrays(parameters, variables):
     variables['motor_current'] = [parameters['motor_current_table'](variables['d_alpha'][-1]).item()]
 
 
-def fixed_step_time_integration(parameters, variables):
+def fixed_step_time_integration(parameters: dict, variables: dict):
     """
     Performs fixed time step integration.
     Integration is performed through an explicit Euler method.
@@ -130,7 +130,7 @@ def fixed_step_time_integration(parameters, variables):
         variables_updating(parameters, variables)
 
 
-def variable_step_time_integration(parameters, variables):
+def variable_step_time_integration(parameters: dict, variables: dict):
     """
     Performs variable time step integration.
     Integration is performed through scipy.integration.ode API.
@@ -187,7 +187,7 @@ def variable_step_time_integration(parameters, variables):
         progress_bar.update(parameters['simulation_time'] - variables['time'][-1])
 
 
-def variables_updating(parameters, variables):
+def variables_updating(parameters: dict, variables: dict):
     """
     Updates time-dependent variables during time integration process.
     Time-dependent variables are stored as lists. At each time step the last updated values of the variables are
@@ -224,7 +224,7 @@ def variables_updating(parameters, variables):
     variables['motor_current'].append(parameters['motor_current_table'](variables['d_alpha'][-1]))
 
 
-def plot_variables(variables):
+def plot_variables(variables: dict):
     """
     Plots calculated variables against time in a 9x9 grid.
 

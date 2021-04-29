@@ -36,7 +36,8 @@ class Coupling:
         self.parameters = {}
         self.variables = {}
 
-    def set_characteristics_curves_files(self, motor_torque_curve_file, motor_current_curve_file, load_torque_curve_file):
+    def set_characteristics_curves_files(self, motor_torque_curve_file: str, motor_current_curve_file: str,
+                                         load_torque_curve_file: str):
         """
         Sets motor and load's characteristics curves file path.
         Saves the file path as key-value pairs in the parameters dictionary.
@@ -45,17 +46,20 @@ class Coupling:
 
         - motor_torque_curve_file reports the driving torque delivered by the motor as a function of its rotation speed.
           The file is structured in two columns:
+
           * d_alpha which reports the motor rotation speed, expressed in rpm
           * torque which reports the motor torque, expressed in Nm
 
         - motor_current_curve_file reports the electric current absorbed by the motor as a function of its rotation
           speed.
           The file is structured in two columns:
+
           * d_alpha which reports the motor rotation speed, expressed in rpm
           * current which reports the motor torque, expressed in A
 
         - load_torque_curve_file reports the resistant torque exerted by the load as a function of its position.
           The file is structured in two columns:
+
           * beta which reports the position of the load, expressed in °
           * torque which shows the resistant torque of the load, expressed in Nm
 
@@ -72,7 +76,7 @@ class Coupling:
         self.parameters['motor_current_curve_file'] = motor_current_curve_file
         self.parameters['load_torque_curve_file'] = load_torque_curve_file
 
-    def set_inertia(self, rotor_inertia, load_inertia):
+    def set_inertia(self, rotor_inertia: float, load_inertia: float):
         """
         Sets rotor and load's moments of inertia.
         Saves them as key-value pairs in the parameters dictionary.
@@ -88,20 +92,21 @@ class Coupling:
         self.parameters['rotor_inertia'] = rotor_inertia
         self.parameters['load_inertia'] = load_inertia
 
-    def set_gearbox(self, load_repetition, gear_ratio, efficiency):
+    def set_gearbox(self, load_repetition: bool, gear_ratio: float, efficiency: float):
         """
         Sets gearbox's parameters.
         Saves them as key-value pairs in the parameters dictionary.
 
         Args:
             load_repetition (bool): If, during the simulation, the value of the load position beta exceeds the range of
-            values​expressed in the load_torque_curve_file file it is necessary to specify what the resistant torque
-            value should be.
-            If load_repetition is True, then the resistant torque expressed in load_torque_curve_file is repeated
-            cyclically as the beta changes; if, on the other hand, it is False, then the resistant torque does not
-            repeat itself and the resistant torque value is calculated through a linear extrapolation.
+                                    values​expressed in the load_torque_curve_file file it is necessary to specify what
+                                    the resistant torque value should be. If load_repetition is True, then the resistant
+                                    torque expressed in load_torque_curve_file is repeated cyclically as the beta
+                                    changes; if, on the other hand, it is False, then the resistant torque does not
+                                    repeat itself and the resistant torque value is calculated through a linear
+                                    extrapolation.
             gear_ratio (float): The total transmission ratio, expressed as the ratio of the rotation speed of the motor
-            and the one of the load.
+                                and the one of the load.
             efficiency (float): The overall efficiency of the gearbox.
 
         Returns:
@@ -112,7 +117,7 @@ class Coupling:
         self.parameters['gear_ratio'] = gear_ratio
         self.parameters['efficiency'] = efficiency
 
-    def set_initial_conditions(self, beta_0, d_beta_0):
+    def set_initial_conditions(self, beta_0: float, d_beta_0: float):
         """
         Sets load's initial conditions.
         Saves them as key-value pairs in the parameters dictionary.
@@ -128,7 +133,7 @@ class Coupling:
         self.parameters['beta_0'] = beta_0
         self.parameters['d_beta_0'] = d_beta_0
 
-    def set_time(self, simulation_time, step_type):
+    def set_time(self, simulation_time: float, step_type: str):
         """
         Sets simulation time parameters.
         Saves them as key-value pairs in the parameters dictionary.
@@ -144,7 +149,7 @@ class Coupling:
         self.parameters['simulation_time'] = simulation_time
         self.parameters['step_type'] = step_type
 
-    def set_integrator(self, **kargs):
+    def set_integrator(self, **kargs: float):
         """
         Sets integrator's parameters.
         Saves them as key-value pairs in the parameters dictionary.
