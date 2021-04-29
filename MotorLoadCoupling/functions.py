@@ -7,12 +7,33 @@ import matplotlib.pyplot as plt
 
 
 def load_data(parameters):
+    """
+    Loads data from file paths provided with set_characteristics_curves_files.
+    Files in .csv format are read and stored as pandas.DataFrames in parameters dictionary.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+
+    Returns:
+        None.
+    """
 
     parameters['motor_torque_curve'] = pd.read_csv(parameters['motor_torque_curve_file'])
     parameters['motor_current_curve'] = pd.read_csv(parameters['motor_current_curve_file'])
     parameters['load_torque_curve'] = pd.read_csv(parameters['load_torque_curve_file'])
 
+
 def convert_units(parameters):
+    """
+    Converts units.
+    Converts angles from ° to rad and velocities from rpm to rad/s.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+
+    Returns:
+        None.
+    """
 
     parameters['motor_torque_curve']['d_alpha'] = parameters['motor_torque_curve']['d_alpha']*2*np.pi/60
     parameters['motor_current_curve']['d_alpha'] = parameters['motor_current_curve']['d_alpha']*2*np.pi/60
@@ -20,7 +41,18 @@ def convert_units(parameters):
     parameters['beta_0'] = parameters['beta_0']/180*np.pi
     parameters['d_beta_0'] = parameters['d_beta_0']*2*np.pi/60
 
+
 def calculate_interpolation_tables(parameters):
+    """
+    Calculates interpolation tables for the characteristic curves loaded with load_data.
+    Store them as key-value pairs in the parameters dictionary.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+
+    Returns:
+        None.
+    """
 
     parameters['motor_torque_table'] = interp1d(parameters['motor_torque_curve']['d_alpha'],
                                                 parameters['motor_torque_curve']['torque'],
@@ -32,7 +64,19 @@ def calculate_interpolation_tables(parameters):
                                                parameters['load_torque_curve']['torque'],
                                                fill_value = 'extrapolate')
 
-def initialize_array(parameters, variables):
+
+def initialize_arrays(parameters, variables):
+    """
+    Initializes arrays of the time-dependent variables.
+    Stores them as key-value pairs in the variables dictionary.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+        variables (dict): Dictionary of the time-dependent variables.
+
+    Returns:
+        None.
+    """
 
     variables['time'] = [0]
     variables['beta'] = [parameters['beta_0']]
@@ -57,7 +101,19 @@ def initialize_array(parameters, variables):
 
     variables['motor_current'] = [parameters['motor_current_table'](variables['d_alpha'][-1]).item()]
 
+
 def fixed_step_time_integration(parameters, variables):
+    """
+    Performs fixed time step integration.
+    Integration is performed through an explicit Euler method.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+        variables (dict): Dictionary of the time-dependent variables.
+
+    Returns:
+        None.
+    """
 
     for _ in tqdm(np.arange(parameters['time_discretization'],
                             parameters['simulation_time']+ parameters['time_discretization'],
@@ -73,7 +129,19 @@ def fixed_step_time_integration(parameters, variables):
 
         variables_updating(parameters, variables)
 
+
 def variable_step_time_integration(parameters, variables):
+    """
+    Performs variable time step integration.
+    Integration is performed through scipy.integration.ode API.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+        variables (dict): Dictionary of the time-dependent variables.
+
+    Returns:
+        None.
+    """
 
     def ode_equation(t, y, acceleration):
         """
@@ -118,7 +186,20 @@ def variable_step_time_integration(parameters, variables):
 
         progress_bar.update(parameters['simulation_time'] - variables['time'][-1])
 
+
 def variables_updating(parameters, variables):
+    """
+    Updates time-dependent variables during time integration process.
+    Time-dependent variables are stored as lists. At each time step the last updated values of the variables are
+    appended to the corresponding list.
+
+    Args:
+        parameters (dict): Dictionary of the input parameters.
+        variables (dict): Dictionary of the time-dependent variables.
+
+    Returns:
+        None.
+    """
 
     variables['motor_torque'].append(parameters['motor_torque_table'](parameters['gear_ratio']*variables['d_beta'][-1]))
 
@@ -142,7 +223,17 @@ def variables_updating(parameters, variables):
                                                   parameters['gear_ratio']/parameters['efficiency'])
     variables['motor_current'].append(parameters['motor_current_table'](variables['d_alpha'][-1]))
 
+
 def plot_variables(variables):
+    """
+    Plots calculated variables against time in a 9x9 grid.
+
+    Args:
+        variables (dict): Dictionary of the time-dependent variables.
+
+    Returns:
+        None.
+    """
 
     axes_label_size = 14
     tick_label_size = 12
