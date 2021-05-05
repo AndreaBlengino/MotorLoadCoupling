@@ -218,17 +218,17 @@ characteristics curves:
 - DC **motor's torque-speed characteristic curve** reported in
   [`data\torque_speed_motor_curve.csv`](https://github.com/AndreaBlengino/MotorLoadCoupling/blob/master/data/torque_speed_motor_curve.csv):
 
-<img src="docs\motor_torque.png">
+<img src="docs\torque_speed_motor_curve.png">
 
 - DC **motor's current-speed characteristic curve** reported in
   [`data\current_speed_motor_curve.csv`](https://github.com/AndreaBlengino/MotorLoadCoupling/blob/master/data/current_speed_motor_curve.csv):
 
-<img src="docs\motor_current.png">
+<img src="docs\current_speed_motor_curve.png">
 
 - **load's torque-position characteristic curve** reported in
   [`data\torque_position_load_curve.csv`](https://github.com/AndreaBlengino/MotorLoadCoupling/blob/master/data/torque_position_load_curve.csv):
 
-<img src="docs\load_torque.png">
+<img src="docs\torque_position_load_curve.png">
 
 The simulation parameters used for an example and already described
 above are:
@@ -250,7 +250,7 @@ above are:
 Taking the above data as an example, the time integration provides the 
 following plots as a result:
  
-<img src="docs\output_plot.png" width="830" height="415">
+<img src="docs\results_plot.png" width="830" height="415">
 
 
 ## Requirements
@@ -275,4 +275,4 @@ enhancements, and ideas are welcome.
 
 ## License
 
-[GNU General Public License v3.0](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/License.txt)
+[GNU General Public License v3.0](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/LICENSE)
