@@ -275,4 +275,4 @@ enhancements, and ideas are welcome.
 
 ## License
 
-[GNU General Public License v3.0](https://github.com/AndreaBlengino/Motor-Load-Coupling/blob/dev/LICENSE)
+[GNU General Public License v3.0](https://github.com/AndreaBlengino/MotorLoadCoupling/blob/master/LICENSE)
