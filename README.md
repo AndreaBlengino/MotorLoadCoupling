@@ -1,5 +1,7 @@
 # Motor-Gearbod-Load Coupling Dynamics Analysis
 
+[![codecov](https://codecov.io/gh/AndreaBlengino/MotorLoadCoupling/branch/master/graph/badge.svg?token=B8HQ2SKBB7)](https://codecov.io/gh/AndreaBlengino/MotorLoadCoupling)
+
 **MotorLoadCoupling** is a python library for analyzing the start-up
 transient dynamics of a motor-gearbox-load coupling.  
 The calculation considers a load that exerts a resistant torque
